@@ -52,13 +52,22 @@ async function createRoom() {
 
   document.querySelector('#currentRoom').innerText = `Current room is ${roomId} - You are the caller!`;
   
-  
+
   localStream.getTracks().forEach(track => {
     peerConnection.addTrack(track, localStream);
   });
 
   // Code for creating a room below
+  roomRef.onSnapshot(async snapshot => {
+    console.log('Got updated room:', snapshot.data());
+    const data = snapshot.data();
 
+    if (!peerConnection.currentRemoteDescription && data.answer) {
+      console.log('Set remote description: ', data.answer);
+      const answer = new RTCSessionDescription(data.answer);
+      await peerConnection.setRemoteDescription(answer);
+    }
+  });
   // Code for creating a room above
 
   // Code for collecting ICE candidates below
