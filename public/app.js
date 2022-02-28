@@ -38,6 +38,8 @@ async function createRoom() {
   registerPeerConnectionListeners();
 
   // Add code for creating a room here
+  const offer = await peerConnection.createOffer();
+  await peerConnection.setLocalDescription(offer);
   
   // Code for creating room above
   
