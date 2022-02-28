@@ -61,7 +61,7 @@ async function createRoom() {
   
   // Code for creating a room above
 
-  async function collectIceCandidates(roomRef, peerConnection, localName, remoteName) {
+  async (roomRef, peerConnection, localName, remoteName) => {
     const candidatesCollection = roomRef.collection(localName);
 
     peerConnection.addEventListener('icecandidate', event => {
