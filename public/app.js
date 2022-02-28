@@ -118,6 +118,20 @@ async function joinRoomById(roomId) {
       peerConnection.addTrack(track, localStream);
     });
 
+    const offer = roomSnapshot.data().offer;
+    await peerConnection.setRemoteDescription(offer);
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+
+    const roomWithAnswer = {
+      answer: {
+        type: answer.type,
+        sdp: answer.sdp
+      }
+    };
+
+    await roomRef.update(roomWithAnswer);
+
     // Code for collecting ICE candidates below
 
     // Code for collecting ICE candidates above
