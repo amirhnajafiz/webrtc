@@ -58,16 +58,7 @@ async function createRoom() {
   });
 
   // Code for creating a room below
-  roomRef.onSnapshot(async snapshot => {
-    console.log('Got updated room:', snapshot.data());
-    const data = snapshot.data();
-
-    if (!peerConnection.currentRemoteDescription && data.answer) {
-      console.log('Set remote description: ', data.answer);
-      const answer = new RTCSessionDescription(data.answer);
-      await peerConnection.setRemoteDescription(answer);
-    }
-  });
+  
   // Code for creating a room above
 
   // Code for collecting ICE candidates below
@@ -82,9 +73,16 @@ async function createRoom() {
     });
   });
 
-  // Listening for remote session description below
+  roomRef.onSnapshot(async snapshot => {
+    console.log('Got updated room:', snapshot.data());
+    const data = snapshot.data();
 
-  // Listening for remote session description above
+    if (!peerConnection.currentRemoteDescription && data.answer) {
+      console.log('Set remote description: ', data.answer);
+      const answer = new RTCSessionDescription(data.answer);
+      await peerConnection.setRemoteDescription(answer);
+    }
+  });
 
   // Listen for remote ICE candidates below
 
