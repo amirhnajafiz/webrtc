@@ -1,0 +1,7 @@
+version: '3.9'
+services:
+  firebase:
+    build: .
+    ports:
+      - "5000:80"
+    image: firebaseRTC:1
