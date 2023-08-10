@@ -22,7 +22,7 @@ async function pageReady() {
     remoteVideo = document.getElementById('remoteVideo');
 
     // make connection to our signaling server
-    serverConnection = new WebSocket(`wss://${window.location.hostname}:8443`);
+    serverConnection = new WebSocket(`ws://${window.location.host}/ws`);
     serverConnection.onmessage = gotMessageFromServer;
 
     const constraints = {
@@ -76,7 +76,7 @@ function gotMessageFromServer(message) {
     const signal = JSON.parse(message.data);
 
     // ignore messages from ourself
-    if (signal.uuid == uuid) return;
+    if (signal.uuid === uuid) return;
 
     // get sdp signals
     if (signal.sdp) {

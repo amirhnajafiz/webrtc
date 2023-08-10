@@ -14,6 +14,8 @@ type Handler struct {
 func (h *Handler) WebsocketHandler(c *websocket.Conn) {
 	h.Connections = append(h.Connections, c)
 
+	log.Println(len(h.Connections))
+
 	for {
 		messageType, bytes, err := c.ReadMessage()
 		if err != nil {
@@ -21,6 +23,8 @@ func (h *Handler) WebsocketHandler(c *websocket.Conn) {
 
 			break
 		}
+
+		fmt.Println("got message")
 
 		h.broadcast(messageType, bytes)
 	}
