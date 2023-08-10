@@ -4,11 +4,21 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+        <script src="./static/script.js"></script>
         <title>
             WebRTC App
         </title>
     </head>
     <body>
-        
+        <video id="localVideo" autoplay playsinline muted style="width:40%;"></video>
+        <video id="remoteVideo" autoplay playsinline style="width:40%;"></video>
+
+        <div style="margin-top: 10px;">
+            <input type="button" id="start" onclick="start(true)" value="Start WebRTC" />
+        </div>
+
+        <script type="text/javascript">
+            pageReady();
+        </script>
     </body>
 </html>
