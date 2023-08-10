@@ -10,10 +10,16 @@
         </title>
     </head>
     <body>
-        <video id="localVideo" autoplay playsinline muted style="width:40%;"></video>
-        <video id="remoteVideo" autoplay playsinline style="width:40%;"></video>
+        <div style="margin-top: 100px; display: flex; justify-content: space-around;">
+            <div style="border: 1px solid black; width: 500px; height: 250px;">
+                <video id="localVideo" autoplay playsinline muted></video><br />
+            </div>
+            <div style="border: 1px solid orange; width: 500px; height: 250px;">
+                <video id="remoteVideo" autoplay playsinline></video>
+            </div>
+        </div>
 
-        <div style="margin-top: 10px;">
+        <div style="margin-top: 150px; text-align: center;">
             <input type="button" id="start" onclick="start(true)" value="Start WebRTC" />
         </div>
 
