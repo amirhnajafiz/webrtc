@@ -105,3 +105,4 @@ dist
 
 # mine
 .DS_Store
+.idea/
