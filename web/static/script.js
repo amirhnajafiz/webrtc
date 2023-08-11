@@ -86,7 +86,7 @@ async function onSignal(ev) {
             await onAnswer(signal.uuid, payload);
             break;
         case 'ice':
-            onIceCandidate(payload);
+            await onIceCandidate(signal.uuid, payload);
             break;
         case 'exit':
             onExit(payload);
@@ -215,8 +215,9 @@ async function onAnswer(id, payload) {
 }
 
 // handling on ice candidate operation
-function onIceCandidate(payload) {
-    // update ice candidate
+async function onIceCandidate(id, payload) {
+    // add ice candidate
+    await remoteConnections[id].pc.addIceCandidate(JSON.parse(payload))
 }
 
 // handling on exit operation
