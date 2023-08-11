@@ -18,9 +18,7 @@ func main() {
 		Views: engine,
 	})
 
-	httpHandler := http.Handler{
-		Connections: make([]*websocket.Conn, 0),
-	}
+	httpHandler := http.New()
 
 	app.Static("/static/", "./web/static")
 	app.Get("/ws", websocket.New(httpHandler.WebsocketHandler))

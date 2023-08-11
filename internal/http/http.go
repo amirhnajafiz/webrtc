@@ -8,13 +8,21 @@ import (
 	"github.com/gofiber/websocket/v2"
 )
 
-type Handler struct {
-	Connections []*client
-}
+type (
+	Handler struct {
+		Connections []*client
+	}
 
-type client struct {
-	lock       sync.Mutex
-	connection *websocket.Conn
+	client struct {
+		lock       sync.Mutex
+		connection *websocket.Conn
+	}
+)
+
+func New() Handler {
+	return Handler{
+		Connections: make([]*client, 0),
+	}
 }
 
 func (h *Handler) WebsocketHandler(c *websocket.Conn) {
