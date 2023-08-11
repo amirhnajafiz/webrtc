@@ -1,10 +1,9 @@
 let localStream;
 let localVideo;
 let peerConnection;
-let remoteVideo;
 let serverConnection;
 let uuid;
-
+let videoDiv;
 
 const peerConnectionConfig = {
   'iceServers': [
@@ -19,7 +18,7 @@ async function pageReady() {
 
     // get video screens
     localVideo = document.getElementById('localVideo');
-    remoteVideo = document.getElementById('remoteVideo');
+    videoDiv = document.getElementById('videos');
 
     // make connection to our signaling server
     serverConnection = new WebSocket(`ws://${window.location.host}/ws`);
@@ -52,7 +51,14 @@ function start(isCaller) {
     // create a new peer connection
     peerConnection = new RTCPeerConnection(peerConnectionConfig);
     peerConnection.onicecandidate = gotIceCandidate;
-    peerConnection.ontrack = gotRemoteStream(remoteVideo);
+
+    let v = createRemoteVideo();
+    let d = createWrapper();
+
+    d.appendChild(v);
+    videoDiv.appendChild(d);
+
+    peerConnection.ontrack = gotRemoteStream(v);
 
     // get local streams and send them
     for (const track of localStream.getTracks()) {
@@ -118,6 +124,29 @@ function gotRemoteStream(remoteVideo){
     return (event) => {
         remoteVideo.srcObject = event.streams[0];
     }
+}
+
+// create remote video
+function createRemoteVideo() {
+    let el = document.createElement("video");
+
+    el.style.width = "100%";
+    el.style.height = "250px";
+    el.autoplay = true;
+    el.playsInline = true;
+
+    return el
+}
+
+// create video wrapper
+function createWrapper() {
+    let el = document.createElement("div");
+
+    el.style.width = "500px";
+    el.style.height = "250px";
+    el.style.border = "1px solid orange";
+
+    return el;
 }
 
 // handing errors
