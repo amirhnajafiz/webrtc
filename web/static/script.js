@@ -17,7 +17,7 @@ async function pageReady() {
     // generating a uuid
     uuid = createUUID();
 
-    // get vidoe screens
+    // get video screens
     localVideo = document.getElementById('localVideo');
     remoteVideo = document.getElementById('remoteVideo');
 
@@ -43,7 +43,6 @@ async function pageReady() {
 
         localStream = stream;
         localVideo.srcObject = stream;
-
     } catch(error) {
         errorHandler(error);
     }
@@ -53,7 +52,7 @@ function start(isCaller) {
     // create a new peer connection
     peerConnection = new RTCPeerConnection(peerConnectionConfig);
     peerConnection.onicecandidate = gotIceCandidate;
-    peerConnection.ontrack = gotRemoteStream;
+    peerConnection.ontrack = gotRemoteStream(remoteVideo);
 
     // get local streams and send them
     for (const track of localStream.getTracks()) {
@@ -62,7 +61,9 @@ function start(isCaller) {
 
     // caller creates a new offer
     if (isCaller) {
-        peerConnection.createOffer().then(createdDescription).catch(errorHandler);
+        peerConnection.createOffer()
+            .then(createdDescription)
+            .catch(errorHandler);
     }
 }
 
@@ -80,14 +81,15 @@ function gotMessageFromServer(message) {
 
     // get sdp signals
     if (signal.sdp) {
-        peerConnection.setRemoteDescription(new RTCSessionDescription(signal.sdp)).then(() => {
-            // only create answers in response to offers
-            if(signal.sdp.type !== 'offer') return;
+        peerConnection.setRemoteDescription(new RTCSessionDescription(signal.sdp))
+            .then(() => {
+                // only create answers in response to offers
+                if (signal.sdp.type !== 'offer') return;
 
-            peerConnection.createAnswer()
-                .then(createdDescription)
-                .catch(errorHandler);
-        })
+                peerConnection.createAnswer()
+                    .then(createdDescription)
+                    .catch(errorHandler);
+            })
             .catch(errorHandler);
     } else if (signal.ice) { // get ice candidate
         peerConnection.addIceCandidate(new RTCIceCandidate(signal.ice))
@@ -104,15 +106,18 @@ function gotIceCandidate(event) {
 
 // create a new session description
 function createdDescription(description) {
-    peerConnection.setLocalDescription(description).then(() => {
-        serverConnection.send(JSON.stringify({'sdp': peerConnection.localDescription, 'uuid': uuid}));
-    })
+    peerConnection.setLocalDescription(description)
+        .then(() => {
+            serverConnection.send(JSON.stringify({'sdp': peerConnection.localDescription, 'uuid': uuid}));
+        })
         .catch(errorHandler);
 }
 
 // get other peer remote stream
-function gotRemoteStream(event) {
-    remoteVideo.srcObject = event.streams[0];
+function gotRemoteStream(remoteVideo){
+    return (event) => {
+        remoteVideo.srcObject = event.streams[0];
+    }
 }
 
 // handing errors
