@@ -1,10 +1,13 @@
 let localStream;
 let localVideo;
-let peerConnection;
+
+let localConnection;
 let serverConnection;
+
 let uuid;
 let videoDiv;
 
+// peer connection configs
 const peerConnectionConfig = {
   'iceServers': [
     {'urls': 'stun:stun.stunprotocol.org:3478'},
@@ -12,6 +15,7 @@ const peerConnectionConfig = {
   ]
 };
 
+// page ready function starts the requirements
 async function pageReady() {
     // generating a uuid
     uuid = createUUID();
@@ -28,6 +32,9 @@ async function pageReady() {
         video: true,
         audio: true,
     };
+
+    // opening peer connection in order to send
+    localConnection = new RTCPeerConnection(peerConnectionConfig);
 
     // check system requirements
     if(!navigator.mediaDevices.getUserMedia) {
@@ -47,10 +54,18 @@ async function pageReady() {
     }
 }
 
-function start(isCaller) {
+// request to join a call
+function join() {
+    localConnection.createOffer()
+        .then(createdDescription(true))
+        .catch(errorHandler);
+}
+
+// handle a new join
+function handler() {
     // create a new peer connection
-    peerConnection = new RTCPeerConnection(peerConnectionConfig);
-    peerConnection.onicecandidate = gotIceCandidate;
+    let pc = new RTCPeerConnection(peerConnectionConfig);
+    pc.onicecandidate = gotIceCandidate;
 
     let v = createRemoteVideo();
     let d = createWrapper();
@@ -58,27 +73,16 @@ function start(isCaller) {
     d.appendChild(v);
     videoDiv.appendChild(d);
 
-    peerConnection.ontrack = gotRemoteStream(v);
+    pc.ontrack = gotRemoteStream(v);
 
     // get local streams and send them
     for (const track of localStream.getTracks()) {
-        peerConnection.addTrack(track, localStream);
-    }
-
-    // caller creates a new offer
-    if (isCaller) {
-        peerConnection.createOffer()
-            .then(createdDescription)
-            .catch(errorHandler);
+        pc.addTrack(track, localStream);
     }
 }
 
+// handle messages from server
 function gotMessageFromServer(message) {
-    // this means that you are the callee
-    if (!peerConnection) {
-        start(false);
-    }
-
     // process signal
     const signal = JSON.parse(message.data);
 
@@ -87,18 +91,23 @@ function gotMessageFromServer(message) {
 
     // get sdp signals
     if (signal.sdp) {
-        peerConnection.setRemoteDescription(new RTCSessionDescription(signal.sdp))
+        localConnection.setRemoteDescription(new RTCSessionDescription(signal.sdp))
             .then(() => {
                 // only create answers in response to offers
-                if (signal.sdp.type !== 'offer') return;
+                if (signal.sdp.type !== 'offer') {
+                    return;
+                }
 
-                peerConnection.createAnswer()
-                    .then(createdDescription)
+                // join a new person
+                handler();
+
+                localConnection.createAnswer()
+                    .then(createdDescription(true))
                     .catch(errorHandler);
             })
             .catch(errorHandler);
     } else if (signal.ice) { // get ice candidate
-        peerConnection.addIceCandidate(new RTCIceCandidate(signal.ice))
+        localConnection.addIceCandidate(new RTCIceCandidate(signal.ice))
             .catch(errorHandler);
     }
 }
@@ -111,12 +120,18 @@ function gotIceCandidate(event) {
 }
 
 // create a new session description
-function createdDescription(description) {
-    peerConnection.setLocalDescription(description)
-        .then(() => {
-            serverConnection.send(JSON.stringify({'sdp': peerConnection.localDescription, 'uuid': uuid}));
-        })
-        .catch(errorHandler);
+function createdDescription(call) {
+    return (description) => {
+        localConnection.setLocalDescription(description)
+            .then(() => {
+                serverConnection.send(JSON.stringify({
+                    'sdp': localConnection.localDescription,
+                    'uuid': uuid,
+                    'call': call
+                }));
+            })
+            .catch(errorHandler);
+    }
 }
 
 // get other peer remote stream
