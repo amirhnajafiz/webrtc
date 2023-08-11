@@ -1,8 +1,8 @@
 let localStream;
 let localVideo;
 
-let localConnection;
 let serverConnection;
+let remoteConnections = {};
 
 let uuid;
 let videoDiv;
@@ -16,10 +16,11 @@ const peerConnectionConfig = {
   ]
 };
 
-
 // page ready function starts the requirements
+// of our application. It generates a unique id and
+// gets user media and sends it to a local stream.
 async function pageReady() {
-    // generating a uuid for this client
+    // generating an uuid for this client
     uuid = createUUID();
 
     // get my local video screen
@@ -29,6 +30,7 @@ async function pageReady() {
 
     // make connection to our signaling server
     serverConnection = new WebSocket(`ws://${window.location.host}/ws`);
+    serverConnection.onmessage = onSignal;
 
     // setup constraints for getting user media
     const constraints = {
@@ -53,6 +55,64 @@ async function pageReady() {
     }
 }
 
+// onJoin handles the joining operations
+function join() {
+    serverConnection.send(JSON.stringify({
+        'type': "join",
+        'uuid': uuid,
+        'payload': null,
+    }));
+}
+
+// onSignal handles the signals from our signaling server
+function onSignal(ev) {
+    const signal = JSON.parse(ev.data);
+
+    // don't process our own signals
+    if (signal.uuid === uuid) return;
+
+    // get signal payload
+    const payload = signal.payload;
+
+    // make decisions based on signal type
+    switch (signal.type) {
+        // handle offer
+        // handle answer
+        // handle ice
+        // handle exit
+    }
+}
+
+// create a new peer connection
+function createPeerConnection() {
+    return new RTCPeerConnection(peerConnectionConfig);
+}
+
+// handling the join operation
+function onJoin(payload) {
+
+}
+
+// handling on offer operation
+function onOffer(payload) {
+
+}
+
+// handling on answer operation
+function onAnswer(payload) {
+
+}
+
+// handling on ice candidate operation
+function onIceCandidate(payload) {
+
+}
+
+// handling on exit operation
+function onExit(payload) {
+
+}
+
 // create remote video
 function createRemoteVideo() {
     let el = document.createElement("video");
@@ -66,14 +126,20 @@ function createRemoteVideo() {
 }
 
 // create video wrapper
-function createWrapper() {
+function createWrapper(id) {
     let el = document.createElement("div");
 
+    el.id = id;
     el.style.width = "500px";
     el.style.height = "250px";
     el.style.border = "1px solid orange";
 
     return el;
+}
+
+// remove an element from screen
+function clearElement(id) {
+    document.getElementById(id).remove();
 }
 
 // handing errors
