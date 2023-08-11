@@ -80,7 +80,7 @@ async function onSignal(ev) {
             await onJoin(signal.uuid);
             break
         case 'offer':
-            onOffer(payload);
+            await onOffer(signal.uuid, payload);
             break;
         case 'answer':
             onAnswer(payload);
@@ -132,7 +132,7 @@ async function onJoin(id) {
     }));
 
     // create video for user
-    let v = createRemoteVideo()
+    let v = createRemoteVideo();
     let w = createWrapper(id);
 
     const remoteStream = new MediaStream();
@@ -145,8 +145,55 @@ async function onJoin(id) {
 }
 
 // handling on offer operation(callee -> caller)
-function onOffer(payload) {
+async function onOffer(id, payload) {
+    // create peer connection
+    let pc = createPeerConnection();
+    localStream.getTracks().forEach((track) => {
+        pc.addTrack(track, localStream);
+    });
 
+    // set peer connections to map
+    remoteConnections[id] = {
+        pc: pc
+    };
+
+    // on ice candidate handler (send it to others)
+    pc.onicecandidate = (ev) => {
+        if (ev.candidate) {
+            serverConnection.send(JSON.stringify({
+                'type': 'ice',
+                'uuid': uuid,
+                'payload': JSON.stringify(ev.candidate.toJSON())
+            }));
+        }
+    };
+
+    // setting remove description
+    await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(atob(payload))));
+
+    // create an answer and send it
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+
+    const answerSdp = btoa(JSON.stringify(pc.localDescription));
+
+    serverConnection.send(JSON.stringify({
+        'type': "answer",
+        'uuid': uuid,
+        'payload': answerSdp,
+    }));
+
+    // create video for user
+    let v = createRemoteVideo();
+    let w = createWrapper(id);
+
+    const remoteStream = new MediaStream();
+    pc.ontrack = ev => ev.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
+
+    v.srcObject = remoteStream;
+
+    w.appendChild(v);
+    videoDiv.appendChild(w);
 }
 
 // handling on answer operation (caller -> callee)
