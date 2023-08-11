@@ -13,6 +13,7 @@ let inMeet = false;
 
 // video box
 let videoDiv;
+let videos = {};
 
 
 // peer connection configs
@@ -201,6 +202,9 @@ async function onOffer(id, payload) {
         'payload': answerSdp,
     }));
 
+    // return if video exists
+    if (id in videos) return;
+
     // create video for user
     let v = createRemoteVideo();
     let w = createWrapper(id);
@@ -212,6 +216,8 @@ async function onOffer(id, payload) {
 
     w.appendChild(v);
     videoDiv.appendChild(w);
+
+    videos[id] = true;
 }
 
 // handling on answer operation (caller -> callee)
@@ -231,6 +237,9 @@ async function onAnswer(id, payload) {
         }));
     });
 
+    // return if video exists
+    if (id in videos) return;
+
     // create video for user
     let v = createRemoteVideo();
     let w = createWrapper(id);
@@ -242,6 +251,8 @@ async function onAnswer(id, payload) {
 
     w.appendChild(v);
     videoDiv.appendChild(w);
+
+    videos[id] = true;
 }
 
 // handling on ice candidate operation
@@ -256,6 +267,7 @@ function onExit(id) {
     remoteConnections.delete(id);
 
     // remove screen
+    videos.delete(id);
     clearElement(id);
 }
 
