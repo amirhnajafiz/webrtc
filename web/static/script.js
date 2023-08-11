@@ -58,14 +58,14 @@ async function pageReady() {
 // onJoin handles the joining operations
 function join() {
     serverConnection.send(JSON.stringify({
-        'type': "offer",
+        'type': "join",
         'uuid': uuid,
         'payload': null,
     }));
 }
 
 // onSignal handles the signals from our signaling server
-function onSignal(ev) {
+async function onSignal(ev) {
     const signal = JSON.parse(ev.data);
 
     // don't process our own signals
@@ -76,6 +76,9 @@ function onSignal(ev) {
 
     // make decisions based on signal type
     switch (signal.type) {
+        case 'join':
+            await onJoin(signal.uuid);
+            break
         case 'offer':
             onOffer(payload);
             break;
@@ -96,16 +99,57 @@ function createPeerConnection() {
     return new RTCPeerConnection(peerConnectionConfig);
 }
 
-// handling on offer operation (caller -> callee)
-function onOffer(payload) {
+// handling join operation (call)
+async function onJoin(id) {
     // create peer connection
+    let pc = createPeerConnection()
+    localStream.getTracks().forEach((track) => {
+        pc.addTrack(track, localStream);
+    });
+
     // set peer connections to map
-    // send ice candidate
-    // send sdp answer
+    remoteConnections[id] = {
+        pc: pc,
+        candidates: []
+    };
+
+    // on ice candidate handler
+    pc.onicecandidate = (ev) => {
+        if (ev.candidate) {
+            remoteConnections[id].candidates.push(JSON.stringify(ev.candidate.toJSON()));
+        }
+    };
+
+    // send sdp offer
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+
+    const offerSdp = btoa(JSON.stringify(pc.localDescription));
+    serverConnection.send(JSON.stringify({
+        'type': "offer",
+        'uuid': uuid,
+        'payload': offerSdp,
+    }));
+
     // create video for user
+    let v = createRemoteVideo()
+    let w = createWrapper(id);
+
+    const remoteStream = new MediaStream();
+    pc.ontrack = ev => ev.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
+
+    v.srcObject = remoteStream;
+
+    w.appendChild(v);
+    videoDiv.appendChild(w);
 }
 
-// handling on answer operation (callee -> caller)
+// handling on offer operation(callee -> caller)
+function onOffer(payload) {
+
+}
+
+// handling on answer operation (caller -> callee)
 function onAnswer(payload) {
     // create peer connection
     // set peer connections to map
