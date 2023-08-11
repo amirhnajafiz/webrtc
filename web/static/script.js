@@ -55,13 +55,24 @@ async function pageReady() {
     }
 }
 
-// onJoin handles the joining operations
+// join handles the joining operations
 function join() {
     serverConnection.send(JSON.stringify({
         'type': "join",
         'uuid': uuid,
         'payload': null,
     }));
+}
+
+// leave call
+function leave() {
+    serverConnection.send(JSON.stringify({
+        'type': "exit",
+        'uuid': uuid,
+        'payload': null,
+    }));
+
+    window.location.reload();
 }
 
 // onSignal handles the signals from our signaling server
