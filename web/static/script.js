@@ -1,10 +1,16 @@
+// local video & stream
 let localStream;
 let localVideo;
 
+// server connections
 let serverConnection;
+// remove connections (peers)
 let remoteConnections = {};
 
+// unique id
 let uuid;
+
+// video box
 let videoDiv;
 
 
@@ -113,7 +119,7 @@ function createPeerConnection() {
 // handling join operation (call)
 async function onJoin(id) {
     // create peer connection
-    let pc = createPeerConnection()
+    let pc = createPeerConnection();
     localStream.getTracks().forEach((track) => {
         pc.addTrack(track, localStream);
     });
@@ -141,18 +147,6 @@ async function onJoin(id) {
         'uuid': uuid,
         'payload': offerSdp,
     }));
-
-    // create video for user
-    let v = createRemoteVideo();
-    let w = createWrapper(id);
-
-    const remoteStream = new MediaStream();
-    pc.ontrack = ev => ev.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
-
-    v.srcObject = remoteStream;
-
-    w.appendChild(v);
-    videoDiv.appendChild(w);
 }
 
 // handling on offer operation(callee -> caller)
@@ -165,14 +159,15 @@ async function onOffer(id, payload) {
 
     // set peer connections to map
     remoteConnections[id] = {
-        pc: pc
+        pc: pc,
+        candidates: []
     };
 
     // on ice candidate handler (send it to others)
     pc.onicecandidate = (ev) => {
         if (ev.candidate) {
             serverConnection.send(JSON.stringify({
-                'type': 'ice',
+                'type': "ice",
                 'uuid': uuid,
                 'payload': JSON.stringify(ev.candidate.toJSON())
             }));
@@ -221,14 +216,26 @@ async function onAnswer(id, payload) {
             'type': "ice",
             'uuid': uuid,
             'payload': c
-        }))
+        }));
     });
+
+    // create video for user
+    let v = createRemoteVideo();
+    let w = createWrapper(id);
+
+    const remoteStream = new MediaStream();
+    remoteConnections[id].ontrack = ev => ev.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
+
+    v.srcObject = remoteStream;
+
+    w.appendChild(v);
+    videoDiv.appendChild(w);
 }
 
 // handling on ice candidate operation
 async function onIceCandidate(id, payload) {
     // add ice candidate
-    await remoteConnections[id].pc.addIceCandidate(JSON.parse(payload))
+    await remoteConnections[id].pc.addIceCandidate(JSON.parse(payload));
 }
 
 // handling on exit operation
