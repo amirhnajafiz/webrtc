@@ -160,6 +160,20 @@ async function onJoin(id) {
         'uuid': uuid,
         'payload': offerSdp,
     }));
+
+    // create video for user
+    let v = createRemoteVideo();
+    let w = createWrapper(id);
+
+    const remoteStream = new MediaStream();
+    remoteConnections[id].ontrack = ev => ev.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
+
+    v.srcObject = remoteStream;
+
+    w.appendChild(v);
+    videoDiv.appendChild(w);
+
+    videos[id] = true;
 }
 
 // handling on offer operation(callee -> caller)
@@ -182,7 +196,7 @@ async function onOffer(id, payload) {
             serverConnection.send(JSON.stringify({
                 'type': "ice",
                 'uuid': uuid,
-                'payload': JSON.stringify(ev.candidate.toJSON())
+                'payload': ev.candidate.toJSON()
             }));
         }
     };
@@ -236,29 +250,12 @@ async function onAnswer(id, payload) {
             'payload': c
         }));
     });
-
-    // return if video exists
-    if (id in videos) return;
-
-    // create video for user
-    let v = createRemoteVideo();
-    let w = createWrapper(id);
-
-    const remoteStream = new MediaStream();
-    remoteConnections[id].ontrack = ev => ev.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
-
-    v.srcObject = remoteStream;
-
-    w.appendChild(v);
-    videoDiv.appendChild(w);
-
-    videos[id] = true;
 }
 
 // handling on ice candidate operation
 async function onIceCandidate(id, payload) {
     // add ice candidate
-    await remoteConnections[id].pc.addIceCandidate(JSON.parse(payload));
+    await remoteConnections[id].pc.addIceCandidate(payload);
 }
 
 // handling on exit operation
@@ -297,7 +294,7 @@ function createWrapper(id) {
 
 // remove an element from screen
 function clearElement(id) {
-    document.getElementById(id).remove();
+    videoDiv.removeChild(document.getElementById(id));
 }
 
 // handing system errors
