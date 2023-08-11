@@ -51,14 +51,14 @@ async function pageReady() {
         localStream = stream;
         localVideo.srcObject = stream;
     } catch(error) {
-        errorHandler(error);
+        errorHandler("Failed to get your input media!")(error);
     }
 }
 
 // onJoin handles the joining operations
 function join() {
     serverConnection.send(JSON.stringify({
-        'type': "join",
+        'type': "offer",
         'uuid': uuid,
         'payload': null,
     }));
@@ -76,9 +76,6 @@ function onSignal(ev) {
 
     // make decisions based on signal type
     switch (signal.type) {
-        case 'join':
-            onJoin(payload);
-            break;
         case 'offer':
             onOffer(payload);
             break;
@@ -99,29 +96,32 @@ function createPeerConnection() {
     return new RTCPeerConnection(peerConnectionConfig);
 }
 
-// handling the join operation
-function onJoin(payload) {
-
-}
-
-// handling on offer operation
+// handling on offer operation (caller -> callee)
 function onOffer(payload) {
-
+    // create peer connection
+    // set peer connections to map
+    // send ice candidate
+    // send sdp answer
+    // create video for user
 }
 
-// handling on answer operation
+// handling on answer operation (callee -> caller)
 function onAnswer(payload) {
-
+    // create peer connection
+    // set peer connections to map
+    // send ice candidate
+    // create video for user
 }
 
 // handling on ice candidate operation
 function onIceCandidate(payload) {
-
+    // update ice candidate
 }
 
 // handling on exit operation
 function onExit(payload) {
-
+    // remove from peers
+    // remove screen
 }
 
 // create remote video
@@ -153,11 +153,12 @@ function clearElement(id) {
     document.getElementById(id).remove();
 }
 
-// handing errors
-function errorHandler(error) {
-    console.log(error);
-
-    alert("Problem with getting camera and microphone data!");
+// handing system errors
+function errorHandler(message) {
+    return (error) => {
+        console.log(error);
+        alert(message);
+    }
 }
 
 // creating an almost unique uuid
