@@ -9,6 +9,7 @@ let remoteConnections = {};
 
 // unique id
 let uuid;
+let inMeet = false;
 
 // video box
 let videoDiv;
@@ -63,6 +64,10 @@ async function pageReady() {
 
 // join handles the joining operations
 function join() {
+    inMeet = true;
+
+    document.getElementById("start").disabled = true;
+
     serverConnection.send(JSON.stringify({
         'type': "join",
         'uuid': uuid,
@@ -72,6 +77,10 @@ function join() {
 
 // leave call
 function leave() {
+    inMeet = false;
+
+    document.getElementById("start").disabled = false;
+
     serverConnection.send(JSON.stringify({
         'type': "exit",
         'uuid': uuid,
@@ -83,6 +92,9 @@ function leave() {
 
 // onSignal handles the signals from our signaling server
 async function onSignal(ev) {
+    // if not in meet, do nothing
+    if (!inMeet) return;
+
     const signal = JSON.parse(ev.data);
 
     // don't process our own signals
