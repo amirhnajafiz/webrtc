@@ -76,10 +76,21 @@ function onSignal(ev) {
 
     // make decisions based on signal type
     switch (signal.type) {
-        // handle offer
-        // handle answer
-        // handle ice
-        // handle exit
+        case 'join':
+            onJoin(payload);
+            break;
+        case 'offer':
+            onOffer(payload);
+            break;
+        case 'answer':
+            onAnswer(payload);
+            break;
+        case 'ice':
+            onIceCandidate(payload);
+            break;
+        case 'exit':
+            onExit(payload);
+            break;
     }
 }
 
