@@ -89,7 +89,7 @@ async function onSignal(ev) {
             await onIceCandidate(signal.uuid, payload);
             break;
         case 'exit':
-            onExit(payload);
+            onExit(signal.uuid);
             break;
     }
 }
@@ -221,9 +221,12 @@ async function onIceCandidate(id, payload) {
 }
 
 // handling on exit operation
-function onExit(payload) {
+function onExit(id) {
     // remove from peers
+    remoteConnections.delete(id);
+
     // remove screen
+    clearElement(id);
 }
 
 // create remote video
