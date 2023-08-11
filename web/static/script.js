@@ -83,7 +83,7 @@ async function onSignal(ev) {
             await onOffer(signal.uuid, payload);
             break;
         case 'answer':
-            onAnswer(payload);
+            await onAnswer(signal.uuid, payload);
             break;
         case 'ice':
             onIceCandidate(payload);
@@ -197,11 +197,21 @@ async function onOffer(id, payload) {
 }
 
 // handling on answer operation (caller -> callee)
-function onAnswer(payload) {
-    // create peer connection
-    // set peer connections to map
+async function onAnswer(id, payload) {
+    // get answer session description
+    let answerSdp = new RTCSessionDescription(JSON.parse(atob(payload)));
+
+    // update answer sdp
+    await remoteConnections[id].pc.setRemoteDescription(answerSdp);
+
     // send ice candidate
-    // create video for user
+    remoteConnections[id].candidates.forEach((c) => {
+        serverConnection.send(JSON.stringify({
+            'type': "ice",
+            'uuid': uuid,
+            'payload': c
+        }))
+    });
 }
 
 // handling on ice candidate operation
