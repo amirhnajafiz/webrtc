@@ -154,6 +154,7 @@ async function onJoin(id) {
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
 
+    // create an offer session description
     const offerSdp = btoa(JSON.stringify(pc.localDescription));
     serverConnection.send(JSON.stringify({
         'type': "offer",
@@ -161,19 +162,16 @@ async function onJoin(id) {
         'payload': offerSdp,
     }));
 
-    // create video for user
-    let v = createRemoteVideo();
-    let w = createWrapper(id);
-
+    // create a remote stream
     const remoteStream = new MediaStream();
     remoteConnections[id].pc.ontrack = ev => ev.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
 
-    v.srcObject = remoteStream;
+    // create video for user
+    let v = createRemoteVideo(remoteStream);
+    let w = createWrapper(id);
 
     w.appendChild(v);
     videoDiv.appendChild(w);
-
-    videos[id] = true;
 }
 
 // handling on offer operation(callee -> caller)
@@ -269,13 +267,14 @@ function onExit(id) {
 }
 
 // create remote video
-function createRemoteVideo() {
+function createRemoteVideo(stream) {
     let el = document.createElement("video");
 
     el.style.width = "100%";
     el.style.height = "250px";
     el.autoplay = true;
     el.playsInline = true;
+    el.srcObject = stream;
 
     return el
 }
