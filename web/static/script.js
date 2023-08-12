@@ -194,7 +194,7 @@ async function onOffer(id, payload) {
             serverConnection.send(JSON.stringify({
                 'type': "ice",
                 'uuid': uuid,
-                'payload': ev.candidate.toJSON()
+                'payload': JSON.stringify(ev.candidate.toJSON())
             }));
         }
     };
@@ -214,22 +214,16 @@ async function onOffer(id, payload) {
         'payload': answerSdp,
     }));
 
-    // return if video exists
-    if (id in videos) return;
+    // create a remote stream
+    const remoteStream = new MediaStream();
+    remoteConnections[id].pc.ontrack = ev => ev.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
 
     // create video for user
-    let v = createRemoteVideo();
+    let v = createRemoteVideo(remoteStream);
     let w = createWrapper(id);
-
-    const remoteStream = new MediaStream();
-    pc.ontrack = ev => ev.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
-
-    v.srcObject = remoteStream;
 
     w.appendChild(v);
     videoDiv.appendChild(w);
-
-    videos[id] = true;
 }
 
 // handling on answer operation (caller -> callee)
@@ -241,11 +235,11 @@ async function onAnswer(id, payload) {
     await remoteConnections[id].pc.setRemoteDescription(answerSdp);
 
     // send ice candidate
-    remoteConnections[id].candidates.forEach((c) => {
+    remoteConnections[id].candidates.forEach((candidate) => {
         serverConnection.send(JSON.stringify({
             'type': "ice",
             'uuid': uuid,
-            'payload': c
+            'payload': candidate
         }));
     });
 }
@@ -253,7 +247,7 @@ async function onAnswer(id, payload) {
 // handling on ice candidate operation
 async function onIceCandidate(id, payload) {
     // add ice candidate
-    await remoteConnections[id].pc.addIceCandidate(payload);
+    await remoteConnections[id].pc.addIceCandidate(JSON.parse(payload));
 }
 
 // handling on exit operation
