@@ -72,6 +72,7 @@ function join() {
         'type': "join",
         'uuid': uuid,
         'payload': null,
+        'dest_id': "global"
     }));
 }
 
@@ -85,6 +86,7 @@ function leave() {
         'type': "exit",
         'uuid': uuid,
         'payload': null,
+        'dest_id': "global"
     }));
 
     window.location.reload();
@@ -99,6 +101,9 @@ async function onSignal(ev) {
 
     // don't process our own signals
     if (signal.uuid === uuid) return;
+
+    // don't process signals that are not for us
+    if (signal.dest_id !== uuid && signal.dest_id !== "global") return;
 
     // get signal payload
     const payload = signal.payload;
@@ -159,6 +164,7 @@ async function onJoin(id) {
         'type': "offer",
         'uuid': uuid,
         'payload': offerSdp,
+        'dest_id': id
     }));
 
     // create a remote stream
@@ -189,11 +195,7 @@ async function onOffer(id, payload) {
     // on ice candidate handler (send it to others)
     pc.onicecandidate = (ev) => {
         if (ev.candidate) {
-            serverConnection.send(JSON.stringify({
-                'type': "ice",
-                'uuid': uuid,
-                'payload': JSON.stringify(ev.candidate.toJSON())
-            }));
+            remoteConnections[id].candidates.push(JSON.stringify(ev.candidate.toJSON()));
         }
     };
 
@@ -210,6 +212,7 @@ async function onOffer(id, payload) {
         'type': "answer",
         'uuid': uuid,
         'payload': answerSdp,
+        'dest_id': id
     }));
 
     // create a remote stream
@@ -237,7 +240,8 @@ async function onAnswer(id, payload) {
         serverConnection.send(JSON.stringify({
             'type': "ice",
             'uuid': uuid,
-            'payload': candidate
+            'payload': candidate,
+            'dest_id': id
         }));
     });
 }
