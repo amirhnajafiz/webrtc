@@ -166,7 +166,7 @@ async function onJoin(id) {
     let w = createWrapper(id);
 
     const remoteStream = new MediaStream();
-    remoteConnections[id].ontrack = ev => ev.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
+    remoteConnections[id].pc.ontrack = ev => ev.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
 
     v.srcObject = remoteStream;
 
@@ -261,10 +261,10 @@ async function onIceCandidate(id, payload) {
 // handling on exit operation
 function onExit(id) {
     // remove from peers
-    remoteConnections.delete(id);
+    remoteConnections[id] = undefined;
 
     // remove screen
-    videos.delete(id);
+    videos[id] = undefined;
     clearElement(id);
 }
 
