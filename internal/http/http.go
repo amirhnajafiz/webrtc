@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"sync"
@@ -16,6 +17,11 @@ type (
 	client struct {
 		lock       sync.Mutex
 		connection *websocket.Conn
+	}
+
+	message struct {
+		T    string `json:"type"`
+		UUID string `json:"uuid"`
 	}
 )
 
@@ -36,6 +42,11 @@ func (h *Handler) WebsocketHandler(c *websocket.Conn) {
 			log.Println(fmt.Errorf("failed to get message error=%w", err))
 
 			break
+		}
+
+		m := new(message)
+		if er := json.Unmarshal(bytes, m); er == nil {
+			log.Println(m.T, m.UUID)
 		}
 
 		h.broadcast(messageType, bytes)

@@ -13,7 +13,6 @@ let inMeet = false;
 
 // video box
 let videoDiv;
-let videos = {};
 
 
 // peer connection configs
@@ -108,7 +107,7 @@ async function onSignal(ev) {
     switch (signal.type) {
         case 'join':
             await onJoin(signal.uuid);
-            break
+            break;
         case 'offer':
             await onOffer(signal.uuid, payload);
             break;
@@ -184,8 +183,7 @@ async function onOffer(id, payload) {
 
     // set peer connections to map
     remoteConnections[id] = {
-        pc: pc,
-        candidates: []
+        pc: pc
     };
 
     // on ice candidate handler (send it to others)
@@ -256,7 +254,6 @@ function onExit(id) {
     remoteConnections[id] = undefined;
 
     // remove screen
-    videos[id] = undefined;
     clearElement(id);
 }
 
