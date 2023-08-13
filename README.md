@@ -36,4 +36,4 @@ After that you can access the application on ```localhost```.
 In the following schema you can see the application ```Finite State Machine```.
 The process of making a call and joining a call is being handled like this.
 
-![]()
+![](.github/diagram.svg)
