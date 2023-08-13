@@ -1,19 +1,22 @@
 // local video & stream
 let localStream;
-let localVideo;
+let localVideo = document.getElementById('localVideo');
 
 // server connections
 let serverConnection;
 // remove connections (peers)
 let remoteConnections = {};
 
-// unique id
+// unique id and meet flag
 let uuid;
 let inMeet = false;
 
 // video box
-let videoDiv;
+let videoDiv = document.getElementById('videos');
 
+
+// set configs and addresses
+const serverAddress = `ws://${window.location.host}/ws`;
 
 // peer connection configs
 const peerConnectionConfig = {
@@ -23,6 +26,18 @@ const peerConnectionConfig = {
   ]
 };
 
+
+// create message types
+const JoinType = "join";
+const OfferType = "offer";
+const AnswerType = "answer";
+const IceCandidateType = "ice-candidate";
+const ExitType = "exit";
+
+// id enums
+const GlobalDest = "global";
+
+
 // page ready function starts the requirements
 // of our application. It generates a unique id and
 // gets user media and sends it to a local stream.
@@ -30,13 +45,8 @@ async function pageReady() {
     // generating an uuid for this client
     uuid = createUUID();
 
-    // get my local video screen
-    localVideo = document.getElementById('localVideo');
-    // get video box
-    videoDiv = document.getElementById('videos');
-
     // make connection to our signaling server
-    serverConnection = new WebSocket(`ws://${window.location.host}/ws`);
+    serverConnection = new WebSocket(serverAddress);
     serverConnection.onmessage = onSignal;
 
     // setup constraints for getting user media
@@ -68,11 +78,12 @@ function join() {
 
     document.getElementById("start").disabled = true;
 
+    // send join request to other peers
     serverConnection.send(JSON.stringify({
-        'type': "join",
+        'type': JoinType,
         'uuid': uuid,
         'payload': null,
-        'dest_id': "global"
+        'dest_id': GlobalDest
     }));
 }
 
@@ -82,11 +93,12 @@ function leave() {
 
     document.getElementById("start").disabled = false;
 
+    // send exit request to other peers
     serverConnection.send(JSON.stringify({
-        'type': "exit",
+        'type': ExitType,
         'uuid': uuid,
         'payload': null,
-        'dest_id': "global"
+        'dest_id': GlobalDest
     }));
 
     window.location.reload();
@@ -102,27 +114,27 @@ async function onSignal(ev) {
     // don't process our own signals
     if (signal.uuid === uuid) return;
 
-    // don't process signals that are not for us
-    if (signal.dest_id !== uuid && signal.dest_id !== "global") return;
+    // don't process signals that are not for us or not global
+    if (signal.dest_id !== uuid && signal.dest_id !== GlobalDest) return;
 
     // get signal payload
     const payload = signal.payload;
 
     // make decisions based on signal type
     switch (signal.type) {
-        case 'join':
+        case JoinType:
             await onJoin(signal.uuid);
             break;
-        case 'offer':
+        case OfferType:
             await onOffer(signal.uuid, payload);
             break;
-        case 'answer':
+        case AnswerType:
             await onAnswer(signal.uuid, payload);
             break;
-        case 'ice':
+        case IceCandidateType:
             await onIceCandidate(signal.uuid, payload);
             break;
-        case 'exit':
+        case ExitType:
             onExit(signal.uuid);
             break;
     }
@@ -141,16 +153,14 @@ async function onJoin(id) {
         pc.addTrack(track, localStream);
     });
 
-    // set peer connections to map
-    remoteConnections[id] = {
-        pc: pc,
-        candidates: []
-    };
+    // create a remote stream
+    const remoteStream = new MediaStream();
+    pc.ontrack = ev => ev.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
 
     // on ice candidate handler
     pc.onicecandidate = (ev) => {
         if (ev.candidate) {
-            remoteConnections[id].candidates.push(JSON.stringify(ev.candidate.toJSON()));
+            pc.candidates.push(JSON.stringify(ev.candidate.toJSON()));
         }
     };
 
@@ -161,15 +171,17 @@ async function onJoin(id) {
     // create an offer session description
     const offerSdp = btoa(JSON.stringify(pc.localDescription));
     serverConnection.send(JSON.stringify({
-        'type': "offer",
+        'type': OfferType,
         'uuid': uuid,
         'payload': offerSdp,
         'dest_id': id
     }));
 
-    // create a remote stream
-    const remoteStream = new MediaStream();
-    remoteConnections[id].pc.ontrack = ev => ev.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
+    // set peer connections to map
+    remoteConnections[id] = {
+        pc: pc,
+        candidates: []
+    };
 
     // create video for user
     let v = createRemoteVideo(remoteStream);
@@ -187,15 +199,19 @@ async function onOffer(id, payload) {
         pc.addTrack(track, localStream);
     });
 
-    // set peer connections to map
-    remoteConnections[id] = {
-        pc: pc
-    };
+    // create a remote stream
+    const remoteStream = new MediaStream();
+    pc.ontrack = ev => ev.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
 
     // on ice candidate handler (send it to others)
     pc.onicecandidate = (ev) => {
         if (ev.candidate) {
-            remoteConnections[id].candidates.push(JSON.stringify(ev.candidate.toJSON()));
+            serverConnection.send(JSON.stringify({
+                'type': IceCandidateType,
+                'uuid': uuid,
+                'payload': JSON.stringify(ev.candidate.toJSON()),
+                'dest_id': id
+            }));
         }
     };
 
@@ -209,15 +225,16 @@ async function onOffer(id, payload) {
     const answerSdp = btoa(JSON.stringify(pc.localDescription));
 
     serverConnection.send(JSON.stringify({
-        'type': "answer",
+        'type': AnswerType,
         'uuid': uuid,
         'payload': answerSdp,
         'dest_id': id
     }));
 
-    // create a remote stream
-    const remoteStream = new MediaStream();
-    remoteConnections[id].pc.ontrack = ev => ev.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
+    // set peer connections to map
+    remoteConnections[id] = {
+        pc: pc
+    };
 
     // create video for user
     let v = createRemoteVideo(remoteStream);
@@ -236,11 +253,11 @@ async function onAnswer(id, payload) {
     await remoteConnections[id].pc.setRemoteDescription(answerSdp);
 
     // send ice candidate
-    remoteConnections[id].candidates.forEach((candidate) => {
+    remoteConnections[id].candidates.forEach((c) => {
         serverConnection.send(JSON.stringify({
-            'type': "ice",
+            'type': IceCandidateType,
             'uuid': uuid,
-            'payload': candidate,
+            'payload': c,
             'dest_id': id
         }));
     });
