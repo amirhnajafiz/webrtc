@@ -22,6 +22,7 @@ type (
 	message struct {
 		T    string `json:"type"`
 		UUID string `json:"uuid"`
+		D    string `json:"dest_id"`
 	}
 )
 
@@ -46,7 +47,7 @@ func (h *Handler) WebsocketHandler(c *websocket.Conn) {
 
 		m := new(message)
 		if er := json.Unmarshal(bytes, m); er == nil {
-			log.Println(m.T, m.UUID)
+			log.Println(m.T, m.UUID, m.D)
 		}
 
 		h.broadcast(messageType, bytes)

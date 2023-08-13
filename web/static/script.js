@@ -1,6 +1,6 @@
 // local video & stream
 let localStream;
-let localVideo = document.getElementById('localVideo');
+let localVideo;
 
 // server connections
 let serverConnection;
@@ -12,7 +12,7 @@ let uuid;
 let inMeet = false;
 
 // video box
-let videoDiv = document.getElementById('videos');
+let videoDiv;
 
 
 // set configs and addresses
@@ -44,6 +44,9 @@ const GlobalDest = "global";
 async function pageReady() {
     // generating an uuid for this client
     uuid = createUUID();
+
+    localVideo = document.getElementById('localVideo');
+    videoDiv = document.getElementById('videos')
 
     // make connection to our signaling server
     serverConnection = new WebSocket(serverAddress);
@@ -116,6 +119,8 @@ async function onSignal(ev) {
 
     // don't process signals that are not for us or not global
     if (signal.dest_id !== uuid && signal.dest_id !== GlobalDest) return;
+
+    console.log(signal);
 
     // get signal payload
     const payload = signal.payload;
