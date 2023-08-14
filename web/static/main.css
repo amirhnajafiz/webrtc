@@ -31,6 +31,10 @@
     border-radius: 5px;
 }
 
+.outer-space {
+    margin: 50px 0;
+}
+
 .small-label {
     display: inline-block;
     margin-top: 5px;

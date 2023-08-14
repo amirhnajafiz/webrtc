@@ -319,6 +319,7 @@ function createWrapper(id) {
 
     el.id = id;
     el.classList.add("rounded");
+    el.classList.add("outer-space");
     el.style.width = "334px";
     el.style.background = "gray";
     el.style.height = "250px";
