@@ -190,9 +190,11 @@ async function onJoin(id) {
 
     // create video for user
     let v = createRemoteVideo(remoteStream);
+    let l = createNameElement(id);
     let w = createWrapper(id);
 
     w.appendChild(v);
+    w.appendChild(l);
     videoDiv.appendChild(w);
 }
 
@@ -243,9 +245,11 @@ async function onOffer(id, payload) {
 
     // create video for user
     let v = createRemoteVideo(remoteStream);
+    let l = createNameElement(id);
     let w = createWrapper(id);
 
     w.appendChild(v);
+    w.appendChild(l);
     videoDiv.appendChild(w);
 }
 
@@ -289,6 +293,7 @@ function createRemoteVideo(stream) {
 
     el.style.width = "100%";
     el.style.height = "250px";
+    el.classList.add("rounded");
     el.autoplay = true;
     el.playsInline = true;
     el.srcObject = stream;
@@ -311,7 +316,9 @@ function createWrapper(id) {
     let el = document.createElement("div");
 
     el.id = id;
-    el.style.width = "500px";
+    el.classList.add("rounded");
+    el.style.width = "334px";
+    el.style.background = "gray";
     el.style.height = "250px";
     el.style.border = "1px solid orange";
 
