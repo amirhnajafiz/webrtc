@@ -296,6 +296,16 @@ function createRemoteVideo(stream) {
     return el
 }
 
+// create name label
+function createNameElement(id) {
+    let el = document.createElement("small");
+
+    el.classList.add("small-label");
+    el.innerText = id;
+
+    return el;
+}
+
 // create video wrapper
 function createWrapper(id) {
     let el = document.createElement("div");
