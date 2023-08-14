@@ -1,0 +1,37 @@
+.btn {
+    border-radius: 5px;
+    padding: 10px 20px;
+    border: 0 solid black;
+    outline: none;
+}
+
+.btn-success {
+    background-color: #008147;
+    color: #ffffff;
+}
+
+.btn-success:hover {
+    background-color: #005e34;
+}
+
+.btn-danger {
+    background-color: #9f2000;
+    color: #ffffff;
+}
+
+.btn-danger:hover {
+    background-color: #731700;
+}
+
+.rounded {
+    border-radius: 5px;
+}
+
+.small-label {
+    display: inline-block;
+    margin-top: 5px;
+    background-color: #595959;
+    color: #ffffff;
+    border-radius: 5px;
+    padding: 5px 10px;
+}
