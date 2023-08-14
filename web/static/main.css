@@ -14,6 +14,10 @@
     background-color: #005e34;
 }
 
+.btn-disable {
+    opacity: 0.5;
+}
+
 .btn-danger {
     background-color: #9f2000;
     color: #ffffff;

@@ -80,6 +80,7 @@ function join() {
     inMeet = true;
 
     document.getElementById("start").disabled = true;
+    document.getElementById("start").classList.add("btn-disable");
 
     // send join request to other peers
     serverConnection.send(JSON.stringify({
@@ -95,6 +96,7 @@ function leave() {
     inMeet = false;
 
     document.getElementById("start").disabled = false;
+    document.getElementById("start").classList.remove("btn-disable");
 
     // send exit request to other peers
     serverConnection.send(JSON.stringify({
