@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/amirhnajafiz/webrtc/internal/http"
 
@@ -12,6 +13,8 @@ import (
 )
 
 func main() {
+	port := os.Getenv("HTTP_PORT")
+
 	engine := html.New("./web", ".html")
 
 	app := fiber.New(fiber.Config{
@@ -25,8 +28,11 @@ func main() {
 	app.Get("/", func(ctx *fiber.Ctx) error {
 		return ctx.Render("index", nil)
 	})
+	app.Get("/health", func(ctx *fiber.Ctx) error {
+		return ctx.SendStatus(fiber.StatusOK)
+	})
 
-	if err := app.Listen(":8080"); err != nil {
+	if err := app.Listen(fmt.Sprintf(":%s", port)); err != nil {
 		log.Println(fmt.Errorf("failed to start signaling server"))
 	}
 }
