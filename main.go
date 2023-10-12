@@ -14,6 +14,7 @@ import (
 
 func main() {
 	port := os.Getenv("HTTP_PORT")
+	debug := os.Getenv("DEV_MODE")
 
 	engine := html.New("./web", ".html")
 
@@ -21,7 +22,7 @@ func main() {
 		Views: engine,
 	})
 
-	httpHandler := http.New()
+	httpHandler := http.New(debug != "false")
 
 	app.Static("/static/", "./web/static")
 	app.Get("/ws", websocket.New(httpHandler.WebsocketHandler))

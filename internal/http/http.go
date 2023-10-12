@@ -11,6 +11,7 @@ import (
 
 type (
 	Handler struct {
+		Debug       bool
 		Connections []*client
 	}
 
@@ -26,8 +27,9 @@ type (
 	}
 )
 
-func New() Handler {
+func New(debug bool) Handler {
 	return Handler{
+		Debug:       debug,
 		Connections: make([]*client, 0),
 	}
 }
@@ -40,14 +42,18 @@ func (h *Handler) WebsocketHandler(c *websocket.Conn) {
 	for {
 		messageType, bytes, err := c.ReadMessage()
 		if err != nil {
-			log.Println(fmt.Errorf("failed to get message error=%w", err))
+			if h.Debug {
+				log.Println(fmt.Errorf("failed to get message error=%w", err))
+			}
 
 			break
 		}
 
 		m := new(message)
 		if er := json.Unmarshal(bytes, m); er == nil {
-			log.Println(m.T, m.UUID, m.D)
+			if h.Debug {
+				log.Println(m.T, m.UUID, m.D)
+			}
 		}
 
 		h.broadcast(messageType, bytes)
@@ -61,7 +67,9 @@ func (h *Handler) broadcast(messageType int, bytes []byte) {
 		c.lock.Lock()
 
 		if err := c.connection.WriteMessage(messageType, bytes); err != nil {
-			log.Println(fmt.Errorf("failed to send data error=%w", err))
+			if h.Debug {
+				log.Println(fmt.Errorf("failed to send data error=%w", err))
+			}
 		}
 
 		c.lock.Unlock()
