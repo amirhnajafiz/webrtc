@@ -68,4 +68,4 @@ The process of making a call and joining a call is being handled like this.
 
 ## contribute
 
-Feel free to submit you pull reqeusts on this repository.
+Feel free to submit you pull requests on this repository.
