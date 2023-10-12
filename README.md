@@ -23,6 +23,15 @@ chmod +x ./main
 ./main
 ```
 
+### env
+
+Set the project env variables to deploy it on production
+
+```shell
+HTTP_PORT=80 # project port
+DEV_MODE=false # logging option
+```
+
 Run the project on container:
 
 ```shell
