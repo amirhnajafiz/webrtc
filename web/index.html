@@ -11,14 +11,22 @@
         </title>
     </head>
     <body>
-        <div id="videos" style="margin-top: 100px; display: flex; justify-content: space-around; flex-wrap: wrap;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>
+                WebRTC call
+            </h1>
+            <small>
+                v0.2.0
+            </small>
+        </div>
+        <div id="videos" style="margin-top: 70px; display: flex; justify-content: space-around; flex-wrap: wrap;">
             <div class="rounded outer-space" style="border: 1px solid black; width: 334px; height: 250px; background: gray;">
                 <video class="rounded" id="localVideo" style="width: 100%; height: 250px;" autoplay playsinline muted></video>
                 <small class="small-label">You</small>
             </div>
         </div>
 
-        <div style="margin-top: 150px; text-align: center;">
+        <div style="margin-top: 100px; text-align: center;">
             <input class="btn btn-success" type="button" id="start" onclick="join()" value="Join WebRTC" />
             <input class="btn btn-danger" type="button" id="end" onclick="leave()" value="Leave WebRTC" />
         </div>
