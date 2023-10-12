@@ -1,3 +1,7 @@
+#videos > div {
+    box-shadow: 0 0 15px #9b9b9b;
+}
+
 .btn {
     border-radius: 5px;
     padding: 10px 20px;
