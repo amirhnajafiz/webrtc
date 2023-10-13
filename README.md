@@ -30,6 +30,7 @@ Set the project env variables to deploy it on production
 ```shell
 HTTP_PORT=80 # project port
 DEV_MODE=false # logging option
+APP_VERSION=v0.2.0 # app version
 ```
 
 Run the project on container:
