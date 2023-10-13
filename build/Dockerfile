@@ -17,10 +17,7 @@ COPY . .
 
 # building go executable file
 RUN go build -o main \
-    && chmod +x ./main \
-
-# expose port 8080
-EXPOSE 80
+    && chmod +x ./main
 
 # start signaling service
 CMD ./main
