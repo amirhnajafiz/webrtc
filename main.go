@@ -27,7 +27,9 @@ func main() {
 	app.Static("/static/", "./web/static")
 	app.Get("/ws", websocket.New(httpHandler.WebsocketHandler))
 	app.Get("/", func(ctx *fiber.Ctx) error {
-		return ctx.Render("index", nil)
+		return ctx.Render("index", fiber.Map{
+			"version": "v0.2.0",
+		})
 	})
 	app.Get("/health", func(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(fiber.StatusOK)
