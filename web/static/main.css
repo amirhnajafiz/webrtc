@@ -2,6 +2,12 @@
     box-shadow: 0 0 15px #9b9b9b;
 }
 
+#videos > div > video {
+    transform: rotateY(180deg);
+    -webkit-transform:rotateY(180deg); /* Safari and Chrome */
+    -moz-transform:rotateY(180deg); /* Firefox */
+}
+
 .btn {
     border-radius: 5px;
     padding: 10px 20px;
