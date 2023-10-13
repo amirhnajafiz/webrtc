@@ -15,6 +15,7 @@ import (
 func main() {
 	port := os.Getenv("HTTP_PORT")
 	debug := os.Getenv("DEV_MODE")
+	version := os.Getenv("APP_VERSION")
 
 	engine := html.New("./web", ".html")
 
@@ -28,7 +29,7 @@ func main() {
 	app.Get("/ws", websocket.New(httpHandler.WebsocketHandler))
 	app.Get("/", func(ctx *fiber.Ctx) error {
 		return ctx.Render("index", fiber.Map{
-			"version": "v0.2.0",
+			"version": version,
 		})
 	})
 	app.Get("/health", func(ctx *fiber.Ctx) error {
